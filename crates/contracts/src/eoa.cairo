@@ -18,7 +18,6 @@ mod ExternallyOwnedAccount {
     use contracts::components::upgradeable::IUpgradeable;
     use contracts::components::upgradeable::upgradeable_component;
     use starknet::account::{Call, AccountContract};
-    //use starknet::InternalContractMemberStateImpl
 
     use starknet::{
         ContractAddress, EthAddress, ClassHash, VALIDATED, get_caller_address, get_contract_address
@@ -68,6 +67,7 @@ mod ExternallyOwnedAccount {
         fn chain_id(self: @ContractState) -> u128 {
             self.chain_id.read()
         }
+
 
         fn set_chain_id(ref self: ContractState, chain_id: u128) {
             assert(

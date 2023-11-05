@@ -4,7 +4,7 @@ use contracts::kakarot_core::{IKakarotCore, KakarotCore, KakarotCore::KakarotCor
 use contracts::uninitialized_account::{
     IUninitializedAccountDispatcher, IUninitializedAccountDispatcherTrait
 };
-use eoa::externally_owned_account::{
+use contracts::eoa::{
     IExternallyOwnedAccount, ExternallyOwnedAccount, IExternallyOwnedAccountDispatcher,
     IExternallyOwnedAccountDispatcherTrait
 };
