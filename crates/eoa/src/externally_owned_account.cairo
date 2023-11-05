@@ -5,6 +5,8 @@ use starknet::{ContractAddress, EthAddress, ClassHash};
 trait IExternallyOwnedAccount<TContractState> {
     fn kakarot_core_address(self: @TContractState) -> ContractAddress;
     fn evm_address(self: @TContractState) -> EthAddress;
+    fn chain_id(self: @TContractState) -> u128;
+    fn set_chain_id(self: @TContractState, chain_id: u128);
 
     /// Upgrade the ExternallyOwnedAccount smart contract
     /// Using replace_class_syscall
@@ -16,6 +18,7 @@ mod ExternallyOwnedAccount {
     use contracts::components::upgradeable::IUpgradeable;
     use contracts::components::upgradeable::upgradeable_component;
     use starknet::account::{Call, AccountContract};
+    //use starknet::InternalContractMemberStateImpl
 
     use starknet::{
         ContractAddress, EthAddress, ClassHash, VALIDATED, get_caller_address, get_contract_address
@@ -29,6 +32,7 @@ mod ExternallyOwnedAccount {
     struct Storage {
         evm_address: EthAddress,
         kakarot_core_address: ContractAddress,
+        chain_id: u128,
         #[substorage(v0)]
         upgradeable: upgradeable_component::Storage,
     }
@@ -42,10 +46,14 @@ mod ExternallyOwnedAccount {
 
     #[constructor]
     fn constructor(
-        ref self: ContractState, kakarot_address: ContractAddress, evm_address: EthAddress
+        ref self: ContractState,
+        kakarot_address: ContractAddress,
+        evm_address: EthAddress,
+        chain_id: u128
     ) {
         self.kakarot_core_address.write(kakarot_address);
         self.evm_address.write(evm_address);
+        self.chain_id.write(chain_id);
     }
 
     #[external(v0)]
@@ -55,6 +63,29 @@ mod ExternallyOwnedAccount {
         }
         fn evm_address(self: @ContractState) -> EthAddress {
             self.evm_address.read()
+        }
+
+        fn chain_id(self: @ContractState) -> u128 {
+            self.chain_id.read()
+        }
+
+        fn set_chain_id(self: @ContractState, chain_id: u128) {
+            assert(
+                get_caller_address() == self.kakarot_core_address.read(),
+                'Caller not Kakarot address'
+            );
+            let address_domain = 0_u32;
+            starknet::SyscallResultTraitImpl::unwrap_syscall(
+                starknet::Store::<
+                    u128
+                >::write(
+                    address_domain,
+                    starknet::storage_base_address_const::<
+                        0x18258a8de7b97db9fd0b50fb344da4d5e1fac29ffabfec634936714bfde4f67
+                    >(),
+                    chain_id,
+                )
+            )
         }
 
         // TODO: make this function reachable from an external invoke call

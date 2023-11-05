@@ -21,6 +21,7 @@ struct EOA {
     starknet_address: ContractAddress
 }
 
+
 #[generate_trait]
 impl EOAImpl of EOATrait {
     /// Deploys a new EOA contract.
@@ -33,7 +34,11 @@ impl EOAImpl of EOATrait {
         let mut kakarot_state = KakarotCore::unsafe_new_contract_state();
         let account_class_hash = kakarot_state.account_class_hash();
         let kakarot_address = get_contract_address();
-        let calldata: Span<felt252> = array![kakarot_address.into(), evm_address.into()].span();
+        let chain_id = kakarot_state.chain_id();
+        let calldata: Span<felt252> = array![
+            kakarot_address.into(), evm_address.into(), chain_id.into()
+        ]
+            .span();
 
         let maybe_address = deploy_syscall(account_class_hash, evm_address.into(), calldata, false);
         let maybe_address = deploy_syscall(account_class_hash, evm_address.into(), calldata, false);
