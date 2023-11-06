@@ -4,6 +4,10 @@ use contracts::kakarot_core::{IKakarotCore, KakarotCore};
 use contracts::uninitialized_account::interface::{
     IUninitializedAccountDispatcher, IUninitializedAccountDispatcherTrait
 };
+use eoa::externally_owned_account::{
+    IExternallyOwnedAccount, ExternallyOwnedAccount, IExternallyOwnedAccountDispatcher,
+    IExternallyOwnedAccountDispatcherTrait
+};
 use evm::errors::{EVMError, CONTRACT_SYSCALL_FAILED, EOA_EXISTS};
 use evm::model::account::{Account, AccountTrait};
 use evm::model::{AccountType, Address};
@@ -11,10 +15,6 @@ use integer::BoundedInt;
 use openzeppelin::token::erc20::interface::{
     IERC20CamelSafeDispatcher, IERC20CamelSafeDispatcherTrait
 };
-    use eoa::externally_owned_account::{
-        IExternallyOwnedAccount, ExternallyOwnedAccount, IExternallyOwnedAccountDispatcher,
-        IExternallyOwnedAccountDispatcherTrait
-    };
 use starknet::{EthAddress, ContractAddress, get_contract_address, deploy_syscall};
 use utils::helpers::ResultExTrait;
 
@@ -39,10 +39,7 @@ impl EOAImpl of EOATrait {
         let account_class_hash = kakarot_state.account_class_hash();
         let kakarot_address = get_contract_address();
         let chain_id = kakarot_state.chain_id();
-        let calldata: Span<felt252> = array![
-            kakarot_address.into(), evm_address.into()
-        ]
-            .span();
+        let calldata: Span<felt252> = array![kakarot_address.into(), evm_address.into()].span();
 
         let maybe_address = deploy_syscall(account_class_hash, evm_address.into(), calldata, false);
         let maybe_address = deploy_syscall(account_class_hash, evm_address.into(), calldata, false);
@@ -58,9 +55,9 @@ impl EOAImpl of EOATrait {
                 account.initialize(kakarot_state.eoa_class_hash());
                 kakarot_state
                     .set_address_registry(evm_address, StoredAccountType::EOA(starknet_address));
-                let eoa =  IExternallyOwnedAccountDispatcher { contract_address: starknet_address };
+                let eoa = IExternallyOwnedAccountDispatcher { contract_address: starknet_address };
                 eoa.set_chain_id(chain_id);
-                
+
                 kakarot_state.emit(EOADeployed { evm_address, starknet_address });
                 Result::Ok(EOA { evm_address, starknet_address })
             },
