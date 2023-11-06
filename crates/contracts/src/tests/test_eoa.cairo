@@ -8,7 +8,7 @@ mod test_external_owned_account {
         IMockContractUpgradeableDispatcher, IMockContractUpgradeableDispatcherTrait,
         MockContractUpgradeableV1
     };
-    use evm::tests::test_utils::{kakarot_address, eoa_address};
+    use evm::tests::test_utils::{kakarot_address, eoa_address, chain_id};
     use starknet::class_hash::Felt252TryIntoClassHash;
     use starknet::testing::{set_caller_address, set_contract_address};
     use starknet::{
@@ -17,7 +17,10 @@ mod test_external_owned_account {
     };
 
     fn deploy_eoa() -> IExternallyOwnedAccountDispatcher {
-        let calldata: Span<felt252> = array![kakarot_address().into(), eoa_address().into()].span();
+        let calldata: Span<felt252> = array![
+            kakarot_address().into(), eoa_address().into(), chain_id().into()
+        ]
+            .span();
 
         let maybe_address = deploy_syscall(
             ExternallyOwnedAccount::TEST_CLASS_HASH.try_into().unwrap(), 0, calldata, false
