@@ -6,7 +6,7 @@ trait IExternallyOwnedAccount<TContractState> {
     fn kakarot_core_address(self: @TContractState) -> ContractAddress;
     fn evm_address(self: @TContractState) -> EthAddress;
     fn chain_id(self: @TContractState) -> u128;
-    fn set_chain_id(self: @TContractState, chain_id: u128);
+    fn set_chain_id(ref self: TContractState, chain_id: u128);
 
     /// Upgrade the ExternallyOwnedAccount smart contract
     /// Using replace_class_syscall
@@ -69,23 +69,12 @@ mod ExternallyOwnedAccount {
             self.chain_id.read()
         }
 
-        fn set_chain_id(self: @ContractState, chain_id: u128) {
+        fn set_chain_id(ref self: ContractState, chain_id: u128) {
             assert(
                 get_caller_address() == self.kakarot_core_address.read(),
                 'Caller not Kakarot address'
             );
-            let address_domain = 0_u32;
-            starknet::SyscallResultTraitImpl::unwrap_syscall(
-                starknet::Store::<
-                    u128
-                >::write(
-                    address_domain,
-                    starknet::storage_base_address_const::<
-                        0x18258a8de7b97db9fd0b50fb344da4d5e1fac29ffabfec634936714bfde4f67
-                    >(),
-                    chain_id,
-                )
-            )
+            self.chain_id.write(chain_id);
         }
 
         // TODO: make this function reachable from an external invoke call

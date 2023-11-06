@@ -11,6 +11,10 @@ use integer::BoundedInt;
 use openzeppelin::token::erc20::interface::{
     IERC20CamelSafeDispatcher, IERC20CamelSafeDispatcherTrait
 };
+    use eoa::externally_owned_account::{
+        IExternallyOwnedAccount, ExternallyOwnedAccount, IExternallyOwnedAccountDispatcher,
+        IExternallyOwnedAccountDispatcherTrait
+    };
 use starknet::{EthAddress, ContractAddress, get_contract_address, deploy_syscall};
 use utils::helpers::ResultExTrait;
 
@@ -36,7 +40,7 @@ impl EOAImpl of EOATrait {
         let kakarot_address = get_contract_address();
         let chain_id = kakarot_state.chain_id();
         let calldata: Span<felt252> = array![
-            kakarot_address.into(), evm_address.into(), chain_id.into()
+            kakarot_address.into(), evm_address.into()
         ]
             .span();
 
@@ -54,6 +58,9 @@ impl EOAImpl of EOATrait {
                 account.initialize(kakarot_state.eoa_class_hash());
                 kakarot_state
                     .set_address_registry(evm_address, StoredAccountType::EOA(starknet_address));
+                let eoa =  IExternallyOwnedAccountDispatcher { contract_address: starknet_address };
+                eoa.set_chain_id(chain_id);
+                
                 kakarot_state.emit(EOADeployed { evm_address, starknet_address });
                 Result::Ok(EOA { evm_address, starknet_address })
             },
